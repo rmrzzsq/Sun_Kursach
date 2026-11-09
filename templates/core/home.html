@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Каталог дисциплин — StudySwap{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3 mb-0">Каталог дисциплин</h1>
+    {% if not user.is_authenticated %}
+        <span class="text-muted small">Регистрация доступна для просмотра карточек материалов</span>
+    {% endif %}
+</div>
+
+{% if disciplines %}
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
+        {% for d in disciplines %}
+            <div class="col">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h2 class="h6 card-title">{{ d.name }}</h2>
+                        <p class="card-text small text-muted mb-1">
+                            {% if d.code %}Код: {{ d.code }}<br>{% endif %}
+                            Кафедра: {{ d.department|default:"—" }}
+                        </p>
+                    </div>
+                    <div class="card-footer bg-white small text-muted">
+                        Материалы по дисциплине появятся после прохождения модерации
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="alert alert-info">Активных дисциплин пока нет. Заполните справочник через админку.</div>
+{% endif %}
+{% endblock %}

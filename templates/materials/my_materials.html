@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Мои материалы — StudySwap{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3 mb-0">Мои материалы</h1>
+    <a class="btn btn-primary btn-sm" href="{% url 'materials:upload' %}">Загрузить новый</a>
+</div>
+
+{% if materials %}
+    <div class="accordion" id="myMaterials">
+        {% for m in materials %}
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button"
+                            data-bs-toggle="collapse" data-bs-target="#m{{ m.pk }}">
+                        {{ m.title }}
+                        <span class="badge bg-{% if m.status == 'PUBLISHED' %}success{% elif m.status == 'REJECTED' %}danger{% elif m.status == 'MODERATION' %}warning text-dark{% elif m.status == 'ARCHIVED' %}dark{% else %}secondary{% endif %} ms-2">
+                            {{ m.get_status_display }}
+                        </span>
+                        {% if m.is_verified_by_community %}<span class="badge bg-info ms-1">Проверено сообществом</span>{% endif %}
+                    </button>
+                </h2>
+                <div id="m{{ m.pk }}" class="accordion-collapse collapse" data-bs-parent="#myMaterials">
+                    <div class="accordion-body">
+                        <p class="mb-1 small text-muted">
+                            {{ m.discipline }} · {{ m.teacher }} · {{ m.type }} ·
+                            сем. {{ m.semester }}, {{ m.academic_year }} · скачиваний: {{ m.download_count }}
+                        </p>
+                        {% if m.moderation_reason %}
+                            <div class="alert alert-secondary py-2 small">Причина модерации: {{ m.moderation_reason }}</div>
+                        {% endif %}
+                        <ul class="list-group list-group-flush">
+                            {% for f in m.files.all %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span>{{ f.original_name }} <span class="text-muted small">({{ f.size_bytes|filesizeformat }})</span></span>
+                                    {% if m.status == 'PUBLISHED' %}
+                                        <a class="btn btn-outline-primary btn-sm"
+                                           href="{% url 'materials:file_download' m.pk f.pk %}">Скачать</a>
+                                    {% else %}
+                                        <span class="text-muted small">недоступно до публикации</span>
+                                    {% endif %}
+                                </li>
+                            {% empty %}
+                                <li class="list-group-item text-muted small">Файлы не приложены.</li>
+                            {% endfor %}
+                        </ul>
+                        {% if m.status == 'PUBLISHED' %}
+                            <div class="mt-2 d-flex justify-content-end">
+                                <form method="post" action="{% url 'materials:archive' m.pk %}"
+                                      onsubmit="return confirm('Перевести материал в архив? Он исчезнет из каталога, файлы и отзывы сохранятся.');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-outline-danger btn-sm">В архив</button>
+                                </form>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="alert alert-info">У вас пока нет загруженных материалов.</div>
+{% endif %}
+{% endblock %}

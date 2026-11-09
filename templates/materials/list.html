@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% block title %}Каталог материалов — StudySwap{% endblock %}
+{% block content %}
+<h1 class="h3 mb-3">Каталог учебных материалов</h1>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <form method="get" action="" class="row g-2 align-items-end">
+            <div class="col-12 col-md-4">
+                <label class="form-label small mb-1" for="id_q">Поиск</label>
+                <input type="text" class="form-control form-control-sm" id="id_q" name="mat_q"
+                       autocomplete="off" value="{{ filters.mat_q }}"
+                       placeholder="название, описание, автор">
+            </div>
+            <div class="col-6 col-md-2">
+                <label class="form-label small mb-1" for="id_discipline">Дисциплина</label>
+                <select class="form-select form-select-sm" id="id_discipline" name="discipline">
+                    <option value="">— все —</option>
+                    {% for d in disciplines %}
+                        <option value="{{ d.id }}" {% if filters.discipline == d.id|stringformat:"s" %}selected{% endif %}>{{ d.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-6 col-md-2">
+                <label class="form-label small mb-1" for="id_teacher">Преподаватель</label>
+                <select class="form-select form-select-sm" id="id_teacher" name="teacher">
+                    <option value="">— все —</option>
+                    {% for t in teachers %}
+                        <option value="{{ t.id }}" {% if filters.teacher == t.id|stringformat:"s" %}selected{% endif %}>{{ t.full_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-6 col-md-2">
+                <label class="form-label small mb-1" for="id_type">Тип</label>
+                <select class="form-select form-select-sm" id="id_type" name="type">
+                    <option value="">— все —</option>
+                    {% for ty in types %}
+                        <option value="{{ ty.id }}" {% if filters.type == ty.id|stringformat:"s" %}selected{% endif %}>{{ ty.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-6 col-md-2">
+                <label class="form-label small mb-1" for="id_semester">Семестр</label>
+                <select class="form-select form-select-sm" id="id_semester" name="semester">
+                    <option value="">— все —</option>
+                    {% for s in semesters %}
+                        <option value="{{ s }}" {% if filters.semester == s|stringformat:"s" %}selected{% endif %}>{{ s }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-6 col-md-4">
+                <label class="form-label small mb-1" for="id_year">Учебный год</label>
+                <select class="form-select form-select-sm" id="id_year" name="year">
+                    <option value="">— все —</option>
+                    {% for y in years %}
+                        <option value="{{ y }}" {% if filters.year == y|stringformat:"s" %}selected{% endif %}>{{ y }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-6 col-md-4">
+                <label class="form-label small mb-1" for="id_tags">Теги (через запятую)</label>
+                <input type="text" class="form-control form-control-sm" id="id_tags" name="mat_tags"
+                       autocomplete="off" value="{{ filters.mat_tags }}">
+            </div>
+            <div class="col-12 col-md-4 d-flex justify-content-end gap-2">
+                <button type="submit" class="btn btn-primary btn-sm">Применить</button>
+                <a class="btn btn-outline-secondary btn-sm" href="{% url 'materials:list' %}">Сбросить</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if materials %}
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
+        {% for m in materials %}
+            <div class="col">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h2 class="h6 card-title">{{ m.title }}</h2>
+                        <p class="card-text small text-muted mb-1">
+                            {{ m.discipline }} · {{ m.teacher }}<br>
+                            {{ m.type }} · сем. {{ m.semester }}, {{ m.academic_year }}<br>
+                            Автор: {{ m.author.full_name }}
+                        </p>
+                        {% if m.tags.all %}
+                            <div class="mb-1">
+                                {% for tg in m.tags.all %}<span class="badge bg-light text-dark border">{{ tg.name }}</span> {% endfor %}
+                            </div>
+                        {% endif %}
+                        <p class="card-text small">{{ m.description|truncatewords:18 }}</p>
+                    </div>
+                    <div class="card-footer bg-white d-flex justify-content-between align-items-center small text-muted">
+                        <span>Рейтинг: {% if m.average_rating is not None %}{{ m.average_rating|floatformat:2 }}{% else %}—{% endif %}</span>
+                        <span>Скачиваний: {{ m.download_count }}</span>
+                        {% if m.is_verified_by_community %}<span class="badge bg-info">Проверено</span>{% endif %}
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    {% if is_paginated %}
+        <nav class="mt-3">
+            <ul class="pagination pagination-sm">
+                {% if page_obj.has_previous %}
+                    <li class="page-item"><a class="page-link" href="?{% if querystring %}{{ querystring }}&{% endif %}page={{ page_obj.previous_page_number }}">←</a></li>
+                {% else %}
+                    <li class="page-item disabled"><span class="page-link">←</span></li>
+                {% endif %}
+                <li class="page-item disabled"><span class="page-link">Стр. {{ page_obj.number }} из {{ paginator.num_pages }}</span></li>
+                {% if page_obj.has_next %}
+                    <li class="page-item"><a class="page-link" href="?{% if querystring %}{{ querystring }}&{% endif %}page={{ page_obj.next_page_number }}">→</a></li>
+                {% else %}
+                    <li class="page-item disabled"><span class="page-link">→</span></li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
+{% else %}
+    <div class="alert alert-info">По заданным фильтрам опубликованных материалов не найдено.</div>
+{% endif %}
+{% endblock %}
