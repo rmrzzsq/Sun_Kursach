@@ -1,11 +1,11 @@
 from django import forms
 
 from dictionaries.models import Discipline, MaterialType, Teacher
-
+from core.forms import BootstrapFormMixin
 from .models import Material
 
 
-class MaterialUploadForm(forms.ModelForm):
+class MaterialUploadForm(BootstrapFormMixin, forms.ModelForm):
     tags_input = forms.CharField(
         label="Теги (через запятую)",
         required=False,
