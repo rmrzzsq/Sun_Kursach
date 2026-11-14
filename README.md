@@ -18,6 +18,5 @@ StudySwap
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
-# переменные окружения: DJANGO_SECRET_KEY, DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT
 python manage.py migrate
 python manage.py runserver
