@@ -11,5 +11,6 @@ urlpatterns = [
     path("materials/", include("materials.urls")),
     path("feedback/", include("feedback.urls")),
     path("moderation/", include("moderation.urls")),
+    path("reports/", include("reports.urls")),
     path("", include("core.urls")),
 ]

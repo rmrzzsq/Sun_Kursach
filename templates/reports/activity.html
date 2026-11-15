@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}Активность пользователей — StudySwap{% endblock %}
+{% block content %}
+<h1 class="h3 mb-3">Сводная отчётность</h1>
+
+<ul class="nav nav-pills mb-3">
+    <li class="nav-item"><a class="nav-link active" href="{% url 'reports:activity' %}">Активность пользователей</a></li>
+    <li class="nav-item"><a class="nav-link" href="{% url 'reports:content' %}">Объём контента</a></li>
+    <li class="nav-item"><a class="nav-link" href="{% url 'reports:log' %}">Системный журнал</a></li>
+</ul>
+
+<form method="get" action="" class="row g-2 align-items-end mb-1">
+    <div class="col-auto">
+        <label class="form-label small mb-1" for="id_date_from">Период с</label>
+        <input type="date" class="form-control form-control-sm" id="id_date_from" name="date_from" value="{{ date_from }}">
+    </div>
+    <div class="col-auto">
+        <label class="form-label small mb-1" for="id_date_to">по</label>
+        <input type="date" class="form-control form-control-sm" id="id_date_to" name="date_to" value="{{ date_to }}">
+    </div>
+    <div class="col-auto d-flex gap-2">
+        <button type="submit" class="btn btn-primary btn-sm">Применить</button>
+        <a class="btn btn-outline-secondary btn-sm" href="{% url 'reports:activity' %}">Сбросить</a>
+    </div>
+</form>
+<p class="small text-muted mb-3">Период фильтрует события по дате совершения. Пустые границы — за всё время.</p>
+
+<div class="row g-2 mb-3">
+    <div class="col-6 col-md-3">
+        <div class="border rounded p-2 text-center bg-white">
+            <div class="fs-5 fw-bold">{{ registrations }}</div>
+            <div class="small text-muted">Регистраций за период</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="border rounded p-2 text-center bg-white">
+            <div class="fs-5 fw-bold">{{ active_users }}</div>
+            <div class="small text-muted">Активных пользователей</div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body table-responsive">
+        <table class="table table-sm table-striped align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Пользователь</th>
+                    <th>Роль</th>
+                    <th class="text-end">Загружено</th>
+                    <th class="text-end">Скачано</th>
+                    <th class="text-end">Оценок</th>
+                    <th class="text-end">Комментариев</th>
+                    <th class="text-end">Жалоб</th>
+                    <th class="text-end">Всего действий</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in rows %}
+                    <tr>
+                        <td>{{ r.full_name }}<div class="small text-muted">{{ r.email }}</div></td>
+                        <td>{{ r.role }}</td>
+                        <td class="text-end">{{ r.uploads }}</td>
+                        <td class="text-end">{{ r.downloads }}</td>
+                        <td class="text-end">{{ r.reviews }}</td>
+                        <td class="text-end">{{ r.comments }}</td>
+                        <td class="text-end">{{ r.complaints }}</td>
+                        <td class="text-end fw-bold">{{ r.total }}</td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="8" class="text-muted">Пользователей нет.</td></tr>
+                {% endfor %}
+            </tbody>
+            <tfoot class="table-group-divider">
+                <tr class="fw-bold">
+                    <td colspan="2">Итого</td>
+                    <td class="text-end">{{ totals.uploads }}</td>
+                    <td class="text-end">{{ totals.downloads }}</td>
+                    <td class="text-end">{{ totals.reviews }}</td>
+                    <td class="text-end">{{ totals.comments }}</td>
+                    <td class="text-end">{{ totals.complaints }}</td>
+                    <td class="text-end">—</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
+{% endblock %}

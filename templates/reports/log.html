@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Системный журнал — StudySwap{% endblock %}
+{% block content %}
+<h1 class="h3 mb-3">Сводная отчётность</h1>
+
+<ul class="nav nav-pills mb-3">
+    <li class="nav-item"><a class="nav-link" href="{% url 'reports:activity' %}">Активность пользователей</a></li>
+    <li class="nav-item"><a class="nav-link" href="{% url 'reports:content' %}">Объём контента</a></li>
+    <li class="nav-item"><a class="nav-link active" href="{% url 'reports:log' %}">Системный журнал</a></li>
+</ul>
+
+<p class="small text-muted">Последние 200 действий в административной панели (штатный журнал Django LogEntry).</p>
+
+<div class="card">
+    <div class="card-body table-responsive">
+        <table class="table table-sm table-striped align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Время</th>
+                    <th>Пользователь</th>
+                    <th>Действие</th>
+                    <th>Тип объекта</th>
+                    <th>Объект</th>
+                    <th>Изменения</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for e in entries %}
+                    <tr>
+                        <td class="text-nowrap">{{ e.action_time|date:"d.m.Y H:i:s" }}</td>
+                        <td>{{ e.user.email|default:"—" }}</td>
+                        <td>
+                            {% if e.is_addition %}<span class="badge bg-success">{{ e.get_action_flag_display }}</span>
+                            {% elif e.is_change %}<span class="badge bg-warning text-dark">{{ e.get_action_flag_display }}</span>
+                            {% else %}<span class="badge bg-danger">{{ e.get_action_flag_display }}</span>{% endif %}
+                        </td>
+                        <td>{{ e.content_type|default:"—" }}</td>
+                        <td>{{ e.object_repr|truncatechars:60 }}</td>
+                        <td class="small text-muted">{{ e.change_message|truncatechars:100|default:"—" }}</td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="6" class="text-muted">Записей нет.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
