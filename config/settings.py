@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     "feedback.apps.FeedbackConfig",
     "moderation.apps.ModerationConfig",
     "administration.apps.AdministrationConfig",
+    "reports",
 ]
 
 AUTH_USER_MODEL = "accounts.User"
