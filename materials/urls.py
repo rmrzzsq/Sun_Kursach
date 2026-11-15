@@ -14,4 +14,5 @@ urlpatterns = [
     ),
     path("<int:pk>/archive/", views.MaterialArchiveView.as_view(), name="archive"),
     path("", views.MaterialListView.as_view(), name="list"),
+    path("<int:pk>/", views.MaterialDetailView.as_view(), name="detail"),
 ]

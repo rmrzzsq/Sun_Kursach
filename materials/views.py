@@ -5,14 +5,14 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.encoding import escape_uri_path
 from django.views import View
 from django.db.models import Q
-from django.views.generic import ListView
+from django.views.generic import DetailView, ListView
 from urllib.parse import urlencode
 from dictionaries.models import Discipline, MaterialType, Teacher
 
 from core.enums import MaterialStatus
 
 from .forms import MaterialUploadForm
-from .models import Material, MaterialFile, Tag
+from .models import DownloadEvent, Material, MaterialFile, Tag
 from .services import record_download, store_material_files
 
 def _normalize_search(value) -> str:
@@ -171,4 +171,35 @@ class MaterialListView(ListView):
         )
         qs_params = {k: v for k, v in params.items() if k != "page" and v != ""}
         ctx["querystring"] = urlencode(qs_params)
+        return ctx
+
+class MaterialDetailView(DetailView):
+    model = Material
+    template_name = "materials/detail.html"
+    context_object_name = "material"
+
+    def get_queryset(self):
+        return (
+            Material.objects
+            .filter(status=MaterialStatus.PUBLISHED)
+            .select_related("author", "discipline", "teacher", "type")
+            .prefetch_related("tags", "files", "reviews__user", "comments__user")
+        )
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        material = ctx["material"]
+        user = self.request.user
+        is_auth = user.is_authenticated
+        ctx["is_auth"] = is_auth
+        ctx["is_own"] = is_auth and material.author_id == user.pk
+        ctx["can_download"] = is_auth
+        ctx["has_downloaded"] = (
+            is_auth
+            and DownloadEvent.objects.filter(material=material, user=user).exists()
+        )
+        ctx["author_reviews"] = material.reviews.select_related("user").order_by("-created_at")
+        ctx["author_comments"] = material.comments.select_related("user").order_by("created_at")
+        ctx["author_rating"] = material.author.author_rating
+        ctx["author_balance"] = material.author.author_balance
         return ctx

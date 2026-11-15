@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block title %}{{ material.title }} — StudySwap{% endblock %}
+{% block content %}
+<a class="btn btn-link mb-2 ps-0" href="{% url 'materials:list' %}">← К каталогу</a>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card mb-3">
+            <div class="card-body">
+                <h1 class="h3">{{ material.title }}</h1>
+                <p class="small text-muted mb-2">
+                    {{ material.discipline }} · {{ material.teacher }}<br>
+                    {{ material.type }} · сем. {{ material.semester }}, {{ material.academic_year }}
+                    {% if material.is_verified_by_community %}<span class="badge bg-info ms-1">Проверено сообществом</span>{% endif %}
+                </p>
+                {% if material.tags.all %}
+                    <div class="mb-2">
+                        {% for tg in material.tags.all %}<span class="badge bg-light text-dark border">{{ tg.name }}</span> {% endfor %}
+                    </div>
+                {% endif %}
+                <h2 class="h6 mt-3">Описание</h2>
+                <p>{{ material.description|linebreaks }}</p>
+
+                <h2 class="h6 mt-3">Файлы</h2>
+                <ul class="list-group list-group-flush">
+                    {% for f in material.files.all %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>{{ f.original_name }} <span class="text-muted small">({{ f.size_bytes|filesizeformat }})</span></span>
+                            {% if can_download %}
+                                <a class="btn btn-outline-primary btn-sm" href="{% url 'materials:file_download' material.pk f.pk %}">Скачать</a>
+                            {% else %}
+                                <span class="text-muted small">скачивание после входа</span>
+                            {% endif %}
+                        </li>
+                    {% empty %}
+                        <li class="list-group-item text-muted small">Файлы не приложены.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <div class="card mb-3">
+            <div class="card-body">
+                <h2 class="h6 mb-3">Отзывы и оценки</h2>
+                {% for r in author_reviews %}
+                    <div class="border-bottom pb-2 mb-2">
+                        <div class="d-flex justify-content-between">
+                            <strong>{{ r.user.full_name }}</strong>
+                            <span class="badge bg-warning text-dark">{{ r.score }} / 5</span>
+                        </div>
+                        {% if r.text %}<p class="mb-1 small">{{ r.text }}</p>{% endif %}
+                        <div class="small text-muted">{{ r.created_at|date:"d.m.Y H:i" }}</div>
+                    </div>
+                {% empty %}
+                    <p class="text-muted small mb-0">Оценок пока нет.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <h2 class="h6 mb-3">Комментарии</h2>
+                {% for c in author_comments %}
+                    <div class="border-bottom pb-2 mb-2">
+                        <div class="d-flex justify-content-between">
+                            <strong>{{ c.user.full_name }}</strong>
+                            <span class="small text-muted">{{ c.created_at|date:"d.m.Y H:i" }}</span>
+                        </div>
+                        <p class="mb-0 small">{{ c.body|linebreaks }}</p>
+                    </div>
+                {% empty %}
+                    <p class="text-muted small mb-0">Комментариев пока нет.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-body">
+                <h2 class="h6 mb-3">Об авторе</h2>
+                <p class="mb-1"><strong>{{ material.author.full_name }}</strong></p>
+                <div class="row g-2 text-center">
+                    <div class="col-6">
+                        <div class="border rounded p-2">
+                            <div class="fs-5 fw-bold">{% if author_rating is not None %}{{ author_rating|floatformat:2 }}{% else %}—{% endif %}</div>
+                            <div class="small text-muted">Рейтинг автора</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="border rounded p-2">
+                            <div class="fs-5 fw-bold">{{ author_balance }}</div>
+                            <div class="small text-muted">Балльный баланс</div>
+                        </div>
+                    </div>
+                </div>
+                <p class="small text-muted mt-2 mb-0">Скачиваний материала: {{ material.download_count }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
