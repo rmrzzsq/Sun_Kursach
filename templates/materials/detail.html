@@ -42,6 +42,31 @@
         <div class="card mb-3">
             <div class="card-body">
                 <h2 class="h6 mb-3">Отзывы и оценки</h2>
+                                {% if not is_auth %}
+                    <p class="small text-muted mb-3"><a href="{% url 'accounts:login' %}">Войдите</a>, чтобы оценить материал.</p>
+                {% elif is_own %}
+                    <p class="small text-muted mb-3">Вы автор материала — оценка недоступна.</p>
+                {% elif not has_downloaded %}
+                    <p class="small text-muted mb-3">Скачайте материал, чтобы оставить оценку.</p>
+                {% else %}
+                    <form method="post" action="{% url 'feedback:create_review' material.pk %}" class="mb-3 pb-3 border-bottom">
+                        {% csrf_token %}
+                        <div class="mb-2">
+                            <span class="form-label d-block">Оценка (1–5)</span>
+                            {% for i in "12345" %}
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="score" id="score_{{ i }}" value="{{ i }}">
+                                    <label class="form-check-label" for="score_{{ i }}">{{ i }}</label>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label" for="review_text">Комментарий к оценке (необязательно)</label>
+                            <textarea class="form-control" id="review_text" name="text" rows="2"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-sm">Оценить</button>
+                    </form>
+                {% endif %}
                 {% for r in author_reviews %}
                     <div class="border-bottom pb-2 mb-2">
                         <div class="d-flex justify-content-between">
@@ -60,6 +85,18 @@
         <div class="card">
             <div class="card-body">
                 <h2 class="h6 mb-3">Комментарии</h2>
+                                {% if not is_auth %}
+                    <p class="small text-muted mb-3"><a href="{% url 'accounts:login' %}">Войдите</a>, чтобы оставить комментарий.</p>
+                {% else %}
+                    <form method="post" action="{% url 'feedback:create_comment' material.pk %}" class="mb-3 pb-3 border-bottom">
+                        {% csrf_token %}
+                        <div class="mb-2">
+                            <label class="form-label" for="comment_body">Комментарий</label>
+                            <textarea class="form-control" id="comment_body" name="body" rows="2" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-outline-primary btn-sm">Отправить комментарий</button>
+                    </form>
+                {% endif %}
                 {% for c in author_comments %}
                     <div class="border-bottom pb-2 mb-2">
                         <div class="d-flex justify-content-between">
@@ -71,6 +108,26 @@
                 {% empty %}
                     <p class="text-muted small mb-0">Комментариев пока нет.</p>
                 {% endfor %}
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <h2 class="h6 mb-2">Жалоба на материал</h2>
+                {% if not is_auth %}
+                    <p class="small text-muted mb-0"><a href="{% url 'accounts:login' %}">Войдите</a>, чтобы отправить жалобу.</p>
+                {% elif is_own %}
+                    <p class="small text-muted mb-0">Вы автор материала — жалоба недоступна.</p>
+                {% else %}
+                    <form method="post" action="{% url 'feedback:submit_complaint' material.pk %}">
+                        {% csrf_token %}
+                        <div class="mb-2">
+                            <label class="form-label" for="complaint_text">Опишите проблему</label>
+                            <textarea class="form-control" id="complaint_text" name="text" rows="2" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-outline-danger btn-sm">Отправить жалобу</button>
+                    </form>
+                {% endif %}
             </div>
         </div>
     </div>

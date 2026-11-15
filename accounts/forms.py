@@ -5,12 +5,13 @@ from django.contrib.auth.forms import (
     UserCreationForm,
 )
 
+from core.forms import BootstrapFormMixin
 from dictionaries.models import Faculty, Institution
 
 from .models import User
 
 
-class SignUpForm(UserCreationForm):
+class SignUpForm(BootstrapFormMixin, UserCreationForm):
     class Meta:
         model = User
         fields = (
@@ -37,14 +38,14 @@ class SignUpForm(UserCreationForm):
         self.fields["password2"].help_text = "Введите тот же пароль, что и выше, для проверки."
 
 
-class LoginForm(AuthenticationForm):
+class LoginForm(BootstrapFormMixin, AuthenticationForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["username"].label = "Email"
         self.fields["username"].widget.attrs.update({"autofocus": True, "inputmode": "email"})
 
 
-class ProfileForm(forms.ModelForm):
+class ProfileForm(BootstrapFormMixin, forms.ModelForm):
     class Meta:
         model = User
         fields = ("full_name", "email", "institution", "faculty", "course", "group")
@@ -62,7 +63,7 @@ class ProfileForm(forms.ModelForm):
         self.fields["group"].label = "Группа"
 
 
-class StudySwapPasswordChangeForm(PasswordChangeForm):
+class StudySwapPasswordChangeForm(BootstrapFormMixin, PasswordChangeForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["old_password"].label = "Текущий пароль"
