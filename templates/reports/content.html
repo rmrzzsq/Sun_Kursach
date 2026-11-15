@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% block title %}Объём контента — StudySwap{% endblock %}
+{% block content %}
+<h1 class="h3 mb-3">Сводная отчётность</h1>
+
+<ul class="nav nav-pills mb-3">
+    <li class="nav-item"><a class="nav-link" href="{% url 'reports:activity' %}">Активность пользователей</a></li>
+    <li class="nav-item"><a class="nav-link active" href="{% url 'reports:content' %}">Объём контента</a></li>
+    <li class="nav-item"><a class="nav-link" href="{% url 'reports:log' %}">Системный журнал</a></li>
+</ul>
+
+<form method="get" action="" class="row g-2 align-items-end mb-1">
+    <div class="col-auto">
+        <label class="form-label small mb-1" for="id_date_from">Период с</label>
+        <input type="date" class="form-control form-control-sm" id="id_date_from" name="date_from" value="{{ date_from }}">
+    </div>
+    <div class="col-auto">
+        <label class="form-label small mb-1" for="id_date_to">по</label>
+        <input type="date" class="form-control form-control-sm" id="id_date_to" name="date_to" value="{{ date_to }}">
+    </div>
+    <div class="col-auto d-flex gap-2">
+        <button type="submit" class="btn btn-primary btn-sm">Применить</button>
+        <a class="btn btn-outline-secondary btn-sm" href="{% url 'reports:content' %}">Сбросить</a>
+    </div>
+</form>
+<p class="small text-muted mb-3">Материалы и файлы — по дате создания; публикации — по дате первой публикации; скачивания — по дате события.</p>
+
+<div class="row g-2 mb-3">
+    <div class="col-6 col-md">
+        <div class="border rounded p-2 text-center bg-white">
+            <div class="fs-5 fw-bold">{{ materials_total }}</div>
+            <div class="small text-muted">Материалов создано</div>
+        </div>
+    </div>
+    <div class="col-6 col-md">
+        <div class="border rounded p-2 text-center bg-white">
+            <div class="fs-5 fw-bold">{{ files_count }}</div>
+            <div class="small text-muted">Файлов</div>
+        </div>
+    </div>
+    <div class="col-6 col-md">
+        <div class="border rounded p-2 text-center bg-white">
+            <div class="fs-5 fw-bold">{{ total_bytes|filesizeformat }}</div>
+            <div class="small text-muted">Объём файлов</div>
+        </div>
+    </div>
+    <div class="col-6 col-md">
+        <div class="border rounded p-2 text-center bg-white">
+            <div class="fs-5 fw-bold">{{ published_in_period }}</div>
+            <div class="small text-muted">Публикаций</div>
+        </div>
+    </div>
+    <div class="col-6 col-md">
+        <div class="border rounded p-2 text-center bg-white">
+            <div class="fs-5 fw-bold">{{ downloads_in_period }}</div>
+            <div class="small text-muted">Скачиваний</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-3">
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-body">
+                <h2 class="h6 mb-2">По статусам</h2>
+                <table class="table table-sm mb-0">
+                    <tbody>
+                        {% for s in by_status %}
+                            <tr><td>{{ s.label }}</td><td class="text-end">{{ s.count }}</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-body">
+                <h2 class="h6 mb-2">По типам материалов</h2>
+                <table class="table table-sm mb-0">
+                    <tbody>
+                        {% for t in by_type %}
+                            <tr><td>{{ t.name }}</td><td class="text-end">{{ t.count }}</td></tr>
+                        {% empty %}
+                            <tr><td class="text-muted">Нет данных за период.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body table-responsive">
+        <h2 class="h6 mb-2">По дисциплинам</h2>
+        <table class="table table-sm table-striped mb-0">
+            <thead>
+                <tr><th>Дисциплина</th><th class="text-end">Материалов</th><th class="text-end">Скачиваний</th></tr>
+            </thead>
+            <tbody>
+                {% for d in by_discipline %}
+                    <tr><td>{{ d.name }}</td><td class="text-end">{{ d.count }}</td><td class="text-end">{{ d.downloads }}</td></tr>
+                {% empty %}
+                    <tr><td colspan="3" class="text-muted">Нет данных за период.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
