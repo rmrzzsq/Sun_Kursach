@@ -166,3 +166,93 @@ class MaterialAccessTests(TestCase):
         m.save()
         m.refresh_from_db()
         self.assertIsNotNone(m.archived_at)
+
+class MaterialUploadValidationTests(TestCase):
+    """ТЗ 1.5 п.4: валидация данных при загрузке материала."""
+
+    def setUp(self):
+        self.author = User.objects.create_user(
+            "author@test.local", "pass12345", full_name="Автор", role=UserRole.USER
+        )
+        self.discipline = Discipline.objects.create(name="Модели данных")
+        self.teacher = Teacher.objects.create(full_name="Антипова О. В.")
+        self.mtype = MaterialType.objects.create(code="NOTE", name="Конспект")
+
+    def _base_data(self):
+        return {
+            "title": "Тестовый материал",
+            "description": "Описание",
+            "discipline": self.discipline.pk,
+            "teacher": self.teacher.pk,
+            "type": self.mtype.pk,
+            "semester": 4,
+            "academic_year": 2026,
+        }
+
+    # --- семестр ---
+
+    def test_valid_semesters_1_to_8(self):
+        from materials.forms import MaterialUploadForm
+        for s in range(1, 9):
+            data = self._base_data()
+            data["semester"] = s
+            form = MaterialUploadForm(data=data)
+            self.assertTrue(form.is_valid(), msg=f"Семестр {s} должен быть валиден")
+
+    def test_invalid_semester_below_1(self):
+        from materials.forms import MaterialUploadForm
+        data = self._base_data()
+        data["semester"] = 0
+        form = MaterialUploadForm(data=data)
+        self.assertFalse(form.is_valid())
+        self.assertIn("semester", form.errors)
+
+    def test_invalid_semester_above_8(self):
+        from materials.forms import MaterialUploadForm
+        data = self._base_data()
+        data["semester"] = 9
+        form = MaterialUploadForm(data=data)
+        self.assertFalse(form.is_valid())
+        self.assertIn("semester", form.errors)
+
+    # --- учебный год ---
+
+    def test_valid_academic_years_2000_to_2100(self):
+        from materials.forms import MaterialUploadForm
+        for y in (2000, 2026, 2100):
+            data = self._base_data()
+            data["academic_year"] = y
+            form = MaterialUploadForm(data=data)
+            self.assertTrue(form.is_valid(), msg=f"Год {y} должен быть валиден")
+
+    def test_invalid_academic_year_below_2000(self):
+        from materials.forms import MaterialUploadForm
+        data = self._base_data()
+        data["academic_year"] = 1999
+        form = MaterialUploadForm(data=data)
+        self.assertFalse(form.is_valid())
+        self.assertIn("academic_year", form.errors)
+
+    def test_invalid_academic_year_above_2100(self):
+        from materials.forms import MaterialUploadForm
+        data = self._base_data()
+        data["academic_year"] = 2101
+        form = MaterialUploadForm(data=data)
+        self.assertFalse(form.is_valid())
+        self.assertIn("academic_year", form.errors)
+
+    # --- обязательные поля ---
+
+    def test_missing_required_fields_fails(self):
+        from materials.forms import MaterialUploadForm
+        form = MaterialUploadForm(data={})
+        self.assertFalse(form.is_valid())
+        for field in ("title", "description", "discipline", "teacher", "type", "semester", "academic_year"):
+            self.assertIn(field, form.errors, msg=f"Поле {field} обязательно")
+
+    def test_tags_input_optional(self):
+        from materials.forms import MaterialUploadForm
+        data = self._base_data()
+        # tags_input не включён → форма должна быть валидна
+        form = MaterialUploadForm(data=data)
+        self.assertTrue(form.is_valid())
